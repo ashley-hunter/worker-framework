@@ -11,7 +11,6 @@ The worker requires configuration files to be passed through for:
 
 * ExampleWorkerConfiguration
 * RabbitWorkerQueueConfiguration
-* StorageServiceDataStoreConfiguration
 
 ### Environment Variables
 ##### CAF\_CONFIG\_PATH

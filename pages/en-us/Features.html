@@ -6,14 +6,14 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Worker Framework</title>
+  <title> Common Application Framework - Features</title>
   <meta name="description" content="Worker Framework Documentation">
 
   <link rel='shortcut icon' href='https://ashley-hunter.github.io/worker-framework//caf-templates/favicon.ico' type='image/x-icon'/>
   <link rel="stylesheet" href="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/main.css">
   <link rel="stylesheet" href="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/css/HPEElements.css">
-  <link rel="canonical" href="https://ashley-hunter.github.io/worker-framework//pages/en-us/blog/">
+  <link rel="canonical" href="https://ashley-hunter.github.io/worker-framework//pages/en-us/Features.html">
 
   
   <link rel="stylesheet" href="https://ashley-hunter.github.io/worker-framework//assets/css/site.css">
@@ -57,9 +57,51 @@
               <div class="docs-content">
 
                 
+                <div class="page-banner">
 
+                  
+                  <div class="page-banner-icon">
+                    <img src="https://ashley-hunter.github.io/worker-framework//assets/img/hard-hat.png" alt="logo">
+                  </div>
+                  
+
+                  <div class="page-banner-contents">
+                    <h1 class="page-banner-brand">Worker Framework</h1>
+                    <h3 class="page-banner-tagline">Cross Platform, Cloud Ready, Microservice Framework</h3>
+
+                    
+                    <div class="page-banner-links">
+                      
+                      <a href="https://github.com/WorkerFramework/worker-framework" class="page-banner-link">GitHub</a>
+                      
+                    </div>
+                    
+                    
+                  </div>
+                </div>
                 
-<h3 class="text-center no-posts">No Blog Posts</h3>
+
+                <h1 id="key-features">Key Features</h1>
+
+<p>The Worker Framework includes the following key features.</p>
+
+<h2 id="high-availability-and-fault-tolerant-messaging">High availability and fault tolerant messaging</h2>
+<p>By default, the Worker Framework uses <a href="https://www.rabbitmq.com/">RabbitMQ</a>, a reliable, robust messaging platform, which allows asynchronous processing and protects against data loss. It also utilizes <a href="https://github.com/jhalterman/lyra">Lyra</a>, a high availability client for RabbitMQ, which provides automated recovery from failures.</p>
+
+<h2 id="external-data-exchange">External data exchange</h2>
+<p>Workers usually operate on data that’s provided from an external, distributed storage system. Also, the size of data can get quite large, including results produced by a worker. To optimize processing, the Worker Framework has a built-in feature allowing data exchange with external storage. It is a pluggable solution and comes with Amazon S3 Storage plugin.</p>
+
+<h2 id="configuration-management">Configuration Management</h2>
+<p>Every worker requires some configuration, which can include queue names it should use or external storage information. The Worker Framework provides developers with an easy way of reading any type of configuration. It supports configuration management by allowing the configuration to be retrieved from various sources like files or REST services. Configuration sources are pluggable so you can extend it to suit your needs.</p>
+
+<h2 id="health-monitoring">Health Monitoring</h2>
+<p>In a distributed system, failures are inevitable. Components have to recover on their own, with no human interaction. Orchestration platforms like Marathon take care of recovery, but they need to know when a service is failing. The Worker Framework supports that by providing a health-check endpoint. Its design enforces this practice by requiring you to return health status upon request. The framework takes care of the rest.</p>
+
+<h2 id="serialization-and-de-serialization-of-message-payload">Serialization and De-serialization of Message Payload</h2>
+<p>Message brokers usually operate on a stream of data. This data contains information required by a particular worker. Since workers operate on typed objects, the message data needs to be serialized and de-serialized. The Worker Framework takes care of that internally such that you don’t have to deal with un-typed data streams.</p>
+
+<h2 id="bulk-message-handling">Bulk Message Handling</h2>
+<p>While workers usually operate on a single message at a time, the Worker Framework provides facilities to implement services designed to handle multiple messages in bulk. The Worker Framework gives a worker full control over partitioning of batches as well as acknowledgement of the completion. This feature is flexible enough for use in a variety of scenarios where bulk processing brings performance benefits, including database processing or search engine ingestion.</p>
 
 
 

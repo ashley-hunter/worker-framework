@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title> Common Application Framework - Architecture</title>
+  <meta name="description" content="Worker Framework Documentation">
+
+  <link rel='shortcut icon' href='https://ashley-hunter.github.io/worker-framework//caf-templates/favicon.ico' type='image/x-icon'/>
+  <link rel="stylesheet" href="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/main.css">
+  <link rel="stylesheet" href="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/css/HPEElements.css">
+  <link rel="canonical" href="https://ashley-hunter.github.io/worker-framework//pages/en-us/Architecture.html">
+
+  
+  <link rel="stylesheet" href="https://ashley-hunter.github.io/worker-framework//assets/css/site.css">
+  
+</head>
+
+
+  <body ng-app="caf" disable-animation>
+
+    <header class="top-header" ng-controller="TopNavCtrl as tnc" header-scroll>
+    <div class="container">
+        
+        <a href="{{ tnc.logo_url }}" class="logo">
+        
+            
+            <img src="https://ashley-hunter.github.io/worker-framework//assets/img/worker-framework-logo.png" class="image" alt="">
+            
+        </a>
+        <ul class="menu">
+            <li class="menu-item" ng-repeat="(key, value) in tnc.top_nav_data.navigation_items" navbar-button>
+                <a localize-all="value"></a>
+            </li>
+        </ul>
+    </div>
+    <div class="menu-toggle" menu-toggle>
+      <span class="hpe-icon hpe-menu"></span>
+    </div>
+</header>
+
+<script type="application/json" id="top-nav-localization">
+    {"navigation_items":[{"title":{"en-us":"Getting Started"},"url":{"en-us":"pages/en-us/Getting-Started"},"icon":"","primary":false},{"title":{"en-us":"Meet the Team"},"url":{"en-us":"pages/en-us/Team"},"icon":"","primary":false},{"title":{"en-us":"Blog"},"url":{"en-us":"pages/en-us/blog/"},"icon":"","primary":false}]}
+</script>
+
+
+    <div class="content-container">
+
+      <div class="container">
+        <div class="row">
+          <div class="wrapper-content">
+            <div class="col-md-9">
+              <div class="docs-content">
+
+                
+                <div class="page-banner">
+
+                  
+                  <div class="page-banner-icon">
+                    <img src="https://ashley-hunter.github.io/worker-framework//assets/img/hard-hat.png" alt="logo">
+                  </div>
+                  
+
+                  <div class="page-banner-contents">
+                    <h1 class="page-banner-brand">Worker Framework</h1>
+                    <h3 class="page-banner-tagline">Cross Platform, Cloud Ready, Microservice Framework</h3>
+
+                    
+                    <div class="page-banner-links">
+                      
+                      <a href="https://github.com/WorkerFramework/worker-framework" class="page-banner-link">GitHub</a>
+                      
+                    </div>
+                    
+                    
+                  </div>
+                </div>
+                
+
+                <h1 id="architecture">Architecture</h1>
+<p>The Worker Framework is a set of Java modules that provide a starting point for developing Worker Microservies. It allows programmers to focus on on adding business value, instead of writing boilerplate code.
+It also provides an execution infrastructure code that dynamically loads and runs worker tasks.
+The framework promotes best practices through well defined set of interfaces and base classes that developers work against.</p>
+
+<h2 id="overview">Overview</h2>
+<p>The Worker Framework is composed of the following main functional parts:</p>
+<ul>
+  <li>the worker core application</li>
+  <li>APIs for a worker back-end and infrastructure plug-ins:
+    <ul>
+      <li>external data storage</li>
+      <li>messaging queue</li>
+      <li>configuration</li>
+      <li>serialization</li>
+    </ul>
+  </li>
+  <li>default implementations of infrastructure plug-ins</li>
+</ul>
+
+<p><img src="images/dependencies.png" alt="Worker Framework Dependencies" /></p>
+
+<h3 id="worker-core-application">Worker Core Application</h3>
+<p>The <code class="highlighter-rouge">worker-core</code> application manages the flow of data between infrastructure components and a worker back-end. It uses service location mechanism to dynamically detects and load implementations of required components, including worker back-end.</p>
+
+<p><img src="images/flow.png" alt="Worker Flow" /></p>
+
+<h4 id="service-location">Service Location</h4>
+<p>The dependency loading mechanism, called servce location, relies on the <code class="highlighter-rouge">util-moduleloader</code> library which internally uses the <a href="http://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html">Java ServiceLoader</a>. To instantiate a service, the class has to have a parameterless constructor. This is why all of the plug-ins use plug-in providers that instantiate the actual plug-in. They also need to be advertised using the <a href="http://docs.oracle.com/javase/6/docs/api/java/util/ServiceLoader.html">ServiceLoader</a> mechanism.
+Implementations of required components have to be packaged with the <code class="highlighter-rouge">worker-core</code> application to allow service locator to detect and use them.</p>
+
+<p>When running, application awaits for incoming messages. When a message is received, application will instantiate a <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/Worker.html">Worker</a> implementation and execute the <code class="highlighter-rouge">doWork</code> method.</p>
+
+<p>To do this, it will use a <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/WorkerFactoryProvider.html">WorkerFactoryProvider</a> located during start-up procedure to obtain a <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/WorkerFactory.html">WorkerFactory</a> which is responsible for construction of a <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/Worker.html">Worker</a> implementation.</p>
+
+<h4 id="worker-factory-provider">Worker Factory Provider</h4>
+<p>The <code class="highlighter-rouge">WorkerFactoryProvider</code> implementation is responsible for creating an instance of a <code class="highlighter-rouge">WorkerFactory</code>. It is resolved using the Java ServiceLoader which means it has to have a parameterless constructor. This interface has only a single method, <code class="highlighter-rouge">getWorkerFactory</code>, called during application start-up.
+It is supplied with the following parameters representing worker framework components which can be used in construction of a <code class="highlighter-rouge">WorkerFactory</code>:</p>
+<ul>
+  <li><code class="highlighter-rouge">configurationSource</code> used to retrieve worker settings</li>
+  <li><code class="highlighter-rouge">datastore</code> used for interaction with external data storage</li>
+  <li><code class="highlighter-rouge">codec</code> used for serialization and de-serialization of messages</li>
+</ul>
+
+<h4 id="worker-factory">Worker Factory</h4>
+<p>The <code class="highlighter-rouge">WorkerFactory</code> creates a new instance of a <code class="highlighter-rouge">Worker</code> for each message received. It can supply to a worker any components that were passed to the factory from a WorkerFactoryProvider, including configuration, data store and codec.</p>
+
+<p><code class="highlighter-rouge">WorkerFactory</code> requires following methods to be implemented:</p>
+<ul>
+  <li>getWorker used to construct a new worker instance and supplied with a worker task data</li>
+  <li>getInvalidTaskQueue which should return a name of a queue to be used when task is not recognized</li>
+  <li>getWorkerThreads providing the maximum number of threads used by <code class="highlighter-rouge">worker-core</code> when executing a <code class="highlighter-rouge">Worker</code> logic</li>
+</ul>
+
+<p>Additionally, developer can implement a <code class="highlighter-rouge">shutdown</code> method to perform required clean-up of resources when the worker application is closed.</p>
+
+<p>There is a base implementation of the <code class="highlighter-rouge">WorkerFactory</code> interface, the <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/worker/AbstractWorkerFactory.html">AbstractWorkerFactory</a>, providing support for de-serialization and validation of a task message as well as worker configuration. It should be used whenever possible.</p>
+
+<h4 id="worker">Worker</h4>
+
+<p>Workers are stateless components designed to perform a specific task. A new worker instance will be created for every task.</p>
+
+<p>Worker receives a task, performs work and outputs a result. <code class="highlighter-rouge">worker-core</code> application takes care of all interactions with a queueing mechanism.</p>
+
+<p>The main method that developer is required to implement is <code class="highlighter-rouge">doWork()</code>. It is called by a <code class="highlighter-rouge">worker-core</code> application per task and return result is expected to be the worker output data.
+Other methods that require implementation are:</p>
+<ul>
+  <li><code class="highlighter-rouge">getWorkerIdentifier</code> which should uniquely identify the worker type</li>
+  <li><code class="highlighter-rouge">getWorkerApiVersion</code> which should identify the worker input and output API version (task and result)</li>
+  <li><code class="highlighter-rouge">getGeneralFailureResult</code> which should return a general failure result in case of unhandled exception.</li>
+</ul>
+
+<p>There is a base implementation of the <code class="highlighter-rouge">Worker</code> interface, the <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/worker/AbstractWorker.html">AbstractWorker</a>. This class provides default implementation of all abstract methods except <code class="highlighter-rouge">doWork</code>.
+It also includes:</p>
+<ul>
+  <li>utility functions for creating responses</li>
+  <li>default exception handling.</li>
+  <li>property for worker task</li>
+</ul>
+
+<p>It should be used as a starting point whenever possible.</p>
+
+<h4 id="worker-error-handling">Worker Error Handling</h4>
+
+<p>The general following rules should be adhered to by all Worker implementations:</p>
+
+<ul>
+  <li>For any explicit failures, return a failure result, not an exception</li>
+  <li>If the input message is not parsable, throw an InvalidTaskException</li>
+  <li>If the task cannot be accepted right now, throw a TaskRejectedException</li>
+  <li>If a transient error occurs in processing, throw a TaskRejectedException</li>
+  <li>If the worker receives an InterruptedException, propagate the InterruptedException</li>
+  <li>If a catastrophic error occurs in processing, throw TaskFailedException</li>
+</ul>
+
+<p>The <code class="highlighter-rouge">WorkerFactory</code> should identify whether the task message data is
+ parsable and this is the first opportunity to throw an <code class="highlighter-rouge">InvalidTaskException</code>.
+ Once a Worker is created with a task object, the framework will verify the
+ object’s constraints (if there are any), which is the second chance to throw
+ <code class="highlighter-rouge">InvalidTaskException</code>. The constructor of the <code class="highlighter-rouge">Worker</code> can throw an
+ <code class="highlighter-rouge">InvalidTaskException</code>. Finally a worker’s <code class="highlighter-rouge">doWork()</code> method can thow an
+ <code class="highlighter-rouge">InvalidTaskException</code>.</p>
+
+<p>While <code class="highlighter-rouge">InvalidTaskException</code> is a non-retryable case, there may be retryable
+ scenarios for instance a brief disconnection from a temporary resources such as
+ a database. If you have a health check in your <code class="highlighter-rouge">WorkerFactory</code> and this is
+ currently failing, you may wish to throw <code class="highlighter-rouge">TaskRejectedException</code>, which will
+ push the task back onto the queue. Once inside a Worker itself, either the
+ code or the libraries used should be able to tolerate some amount of transient
+ failures in connected resources, but if this still cannot be rectified in a
+ reasonable time frame then it is also valid to throw <code class="highlighter-rouge">TaskRejectedException</code> from
+ inside the Worker, with the understanding that any amount of work done so
+ far will be abandoned.</p>
+
+<p>Throwing <code class="highlighter-rouge">TaskFailedException</code> should be a last resort, for situations that
+ should not occur and are not recoverable. Most times, any checked exceptions
+ that are caught and are a valid failure case should log the exception, (not
+ propagate the exception). Workers derived from <code class="highlighter-rouge">AbstractWorker&lt;&gt;</code> should then
+ call <code class="highlighter-rouge">createFailureResult(...)</code> perhaps using a sensible enumeration status code
+ for your task.</p>
+
+<p>You do not need to handle the following, as the framework will handle it:</p>
+
+<ul>
+  <li>The input wrapper not being parsable</li>
+  <li>Connections to the queue dropping</li>
+</ul>
+
+<h4 id="poison-messages">Poison Messages</h4>
+
+<p>A poison message is a message a worker is unable to handle. A message is
+ deemed poisonous during processing when repeated catastrophic failure of the
+ worker occurs. Regardless of how many times the message is retried, the worker
+ will not be able to handle the message in a graceful manor.</p>
+
+<p>On receiving a message, a worker will attempt to process the message.  Should
+ the worker crash during processing, the message will be returned to the
+ <code class="highlighter-rouge">worker-input-queue</code> by the framework and a retry count append to the message
+ headers.  The number of permitted retries is configurable within the
+ <code class="highlighter-rouge">RabbitWorkerQueueConfiguration</code> file for a worker i.e. cfg_caf_dataprocessing_${worker}_RabbitWorkerQueueConfiguration.<br />
+ A message will be retried until successful or until the retry count exceeds the
+ permitted number of retries.  If the permitted number of retries is exceeded the
+ message will be placed on the <code class="highlighter-rouge">worker-output-queue</code> by the framework, with a
+ task status of “RESULT_EXCEPTION”.</p>
+
+<h3 id="data-store">Data Store</h3>
+
+<p>Workers often need to interact with an external data storage. Worker Framework supports it by providing the  DataStore interface. A worker can use it to retrieve and store binary data identified by name.
+Implementations are pluggable and following are provided out-of-box:</p>
+<ul>
+  <li>FileSystem: <code class="highlighter-rouge">worker-store-fs</code></li>
+  <li>HPE Storage Services: <code class="highlighter-rouge">worker-store-cs</code></li>
+  <li>AWS S3: <code class="highlighter-rouge">worker-store-s3</code></li>
+</ul>
+
+<p>To use a different technology, developers are required to implement the <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/DataStore.html">DataStore</a> interface as well as <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/DataStoreProvider.html">DataStoreProvider</a> supporting the service location.</p>
+
+<h3 id="messaging-queue">Messaging Queue</h3>
+
+<p>Workers use message queues to receive work and respond with results. All interactions are handled internally by the framework.
+Out-of-box, the Worker Framework uses RabbitMQ but this is a pluggable mechanism. Developers wishing to use a different technology are required to implement the <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/ManagedWorkerQueue.html">ManagedWorkerQueue</a> interface.
+<a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/worker/WorkerQueueProvider.html">WorkerQueueProvider</a> implementation is also required to support the service location mechanism.</p>
+
+<h3 id="configuration">Configuration</h3>
+
+<p>In most cases, workers will require some sort of configuration provided to them. Worker Framework supports it by providing the <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/ConfigurationSource.html">ConfigurationSource</a> interface. It has a single method, <code class="highlighter-rouge">getConfiguration</code>, that can be used by a worker to retrieve a particular configuration type.
+Configuration type is identified by a Java class. ConfigurationSource will retrieve a binary representation of this class from underlying source and de-serialize it.
+Out-of-box implementations provided with the framework are:</p>
+<ul>
+  <li><a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/config/file/FileConfigurationSource.html">FileConfigurationSource</a>, which reads configuration from a disk file.</li>
+  <li><a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/config/rest/RestConfigurationSource.html">RestConfigurationSource</a> which retrieves JSON data from an HTTP REST source.</li>
+</ul>
+
+<p>To use a different source, developers are required to provide an implementation of the <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/ManagedConfigurationSource.html">ManagedConfigurationSource</a> and <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/ConfigurationSourceProvider.html">ConfigurationSourceProvider</a>.</p>
+
+<h4 id="encryption-of-configuration">Encryption of Configuration</h4>
+
+<p>Configuration data can be encrypted. This is achieved by the use of <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/Cipher.html">Cipher</a>.
+By default, the <code class="highlighter-rouge">worker-core</code> application will use the <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/cipher/NullCipher.html">NullCipher</a> implementation which does not encrypt or decrypt any data.
+Framework also includes the <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/cipher/jasypt/JasyptCipher.html">JasyptCipher</a> which provides basic text encryption.
+Developers can implement their own encryption mechanism by providing an implementation of the Cipher and the <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/CipherProvider.html">CipherProvider</a>.</p>
+
+<h4 id="decoding-configuration-files">Decoding Configuration Files</h4>
+
+<p>The way in which Configuration files are read may be further controlled through the use of a specific Decoder. These can be used to add additional parsing functionality to the contents of configuration. The decoder used is controlled by the <code class="highlighter-rouge">CAF_CONFIG_DECODER</code> environment variable. If this is not specified then the <code class="highlighter-rouge">Codec</code> supplied will be used instead to read the contents of configuration.</p>
+
+<p>An example of using a decoder for additional parsing functionality is the JavaScript Decoder which adds supports for reading configuration written in JavaScript files. The decoder also provides a method <code class="highlighter-rouge">getenv</code> which can be used in the configuration definition to access environment variables when the configuration is read.</p>
+
+<p>e.g.</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>({
+    name: getenv("MY_STRING") || "Default name"
+});
+</code></pre>
+</div>
+
+<p>In the above example, the name property will be either the value of the environment variable <code class="highlighter-rouge">MY_STRING</code>, or if that environment variable is not present at the runtime then the name property will be set to “Default name”.</p>
+
+<p>Developers can create and use their own decoder by providing an implementation of the Decoder and providing the name of the implementation class in the environment variable <code class="highlighter-rouge">CAF_CONFIG_DECODER</code>.</p>
+
+<p>e.g. To use the JavaScript decoder, <code class="highlighter-rouge">CAF_CONFIG_DECODER</code> should be set to <code class="highlighter-rouge">JavascriptDecoder</code>.</p>
+
+<h3 id="serialization">Serialization</h3>
+
+<p>The framework operates on messages which carry a payload with all information required for processig. This information needs to be serialized and de-serialized before it can be used by <code class="highlighter-rouge">worker-core</code> or a <code class="highlighter-rouge">Worker</code>. Worker Framework takes care of that internally using the <a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/api/Codec.html">Codec</a> interface. This interface provides format-agnostic methods for serializing and deserializing of an object. There are following codecs provided with the framework:</p>
+<ul>
+  <li><a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/codec/JsonCodec.html">JsonCodec</a> for the JSON format</li>
+  <li><a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/codec/JsonLzfCodec.html">JsonLzfCodec</a> for the JSON format compressed with a high-speed LZF algorithm</li>
+  <li><a href="https://workerframework.github.io/worker-framework/pages/en-us/apidocs/com/hpe/caf/codec/YamlCodec.html">YamlCodec</a> for the YAML format</li>
+</ul>
+
+<p>To use a different format, developer has to implement the <code class="highlighter-rouge">Codec</code> and `CodecProvider</p>
+
+
+
+                <div class="footer">
+                  
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              
+<div ng-controller="SideNavCtrl as snc">
+    <nav role="navigation" class="sidebar" ng-class="{ 'expanded': snc.side_nav_expanded }">
+
+        <div class="header">
+            <p class="title">CAF Documentation</p>
+            <div class="close-button" ng-click="snc.side_nav_expanded = false">
+                <i class="hpe-icon hpe-close"></i>
+            </div>
+        </div>
+
+        <ul class="nav sidenav" side-menu>
+            <li ng-repeat="(key, firstlevel) in snc.side_nav_data.navigation_items">
+                <a localize-all="firstlevel" class="root-section" default-url="firstlevel.url" ng-class="{ 'hover-effect': firstlevel.url }"></a>
+                <ul class="nav">
+                    <li ng-repeat="(key, secondlevel) in firstlevel.children">
+                        <a class="nav-item" localize-all="secondlevel" ng-if="secondlevel.url"></a>     
+                        <a ng-if="secondlevel.children" default-url="secondlevel.children[0].url">
+                            <span localize-all="secondlevel"></span>
+                        </a>
+                        <ul class="nav" ng-if="secondlevel.children">
+                            <li ng-repeat="(key, thirdlevel) in secondlevel.children">
+                                <a localize-all="thirdlevel" ng-if="thirdlevel.url"></a>
+                                <a ng-if="thirdlevel.children">
+                                    <span localize-all="thirdlevel"></span>
+                                </a>
+                                <ul class="nav" ng-if="thirdlevel.children">
+                                    <li ng-repeat="(key, fourthlevel) in thirdlevel.children">
+                                        <a localize-all="fourthlevel" ng-if="fourthlevel.url"></a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>               
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+    </nav>
+
+    <div class="side-nav-expand-btn visible-sm-block visible-xs-block" ng-click="snc.side_nav_expanded = true">
+        <i class="hpe-icon hpe-app"></i>
+    </div>
+</div>
+
+
+
+<script type="application/json" id="side-nav-localization">
+    {"navigation_items":[{"title":{"en-us":"Worker Framework"},"children":[{"title":{"en-us":"Overview"},"url":{"en-us":"pages/en-us/Overview"}},{"title":{"en-us":"Features"},"url":{"en-us":"pages/en-us/Features"}},{"title":{"en-us":"Getting Started"},"url":{"en-us":"pages/en-us/Getting-Started"}},{"title":{"en-us":"API"},"url":{"en-us":"pages/en-us/apidocs"}},{"title":{"en-us":"Architecture"},"url":{"en-us":"pages/en-us/Architecture"}}]}]}
+</script>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    
+
+  <footer class="footer-banner" ng-controller="FooterCtrl as ftc">
+
+    <div class="container">
+
+      <div class="columns-row row">
+
+          <div class="col-md-2 col-sm-4 col-xs-6" ng-repeat="(key, value) in ::ftc.footer_data.footer_columns">
+            <h4 class="footer-title" localize-all="value"></h4>
+            <a ng-repeat="link in ::value.links" class="footer-link" localize-all="link"></a>
+          </div>
+      </div>
+
+      <div class="row">
+        
+        <div class="col-md-4 col-sm-12 col-xs-12">
+          
+          <p class="copyright">© 2016 Hewlett Packard Enterprise</p>
+          
+        </div>
+
+        <div class="col-md-4 col-sm-12 col-xs-12">
+          
+          <img class="footer-logo" src="https://ashley-hunter.github.io/worker-framework//assets/img/worker-framework-logo.png" alt="">
+          
+        </div>
+
+        <div class="col-md-4 col-sm-12 col-xs-12">
+          
+          <a href="https://github.com/WorkerFramework/worker-framework/issues" class="feedback"><i class="hpe-icon hpe-contact-us p-r-xs"></i> Feedback</a>
+          
+        </div>
+
+      </div>
+
+    </div>
+
+  </footer>
+
+
+
+<!-- Language modal here -->
+<div ng-controller="LocalizeModalCtrl as lmc" class="modal fade" id="language-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog modal-lg square-modal-window" role="document">
+    <div class="modal-content">
+      <div class="modal-body language-modal">
+        <h1 class="language-title"><span localize-text="'Choose A Region'"></span> <span class="hpe-icon hpe-close" data-dismiss="modal"></span></h1>
+
+        <div class="continent" ng-repeat="(continent, continent_data) in lmc.continents">
+          <p class="continent-title" ng-bind="continent"></p>
+          <div class="region-list">
+            <div class="region" ng-repeat="region in continent_data.countries" ng-click="lmc.select_region(region.abbreviation)">
+              <p class="region-name" ng-class="{ 'active': region.abbreviation === lmc.selected_language }">
+                <span ng-bind="region.country"></span>
+              </p>
+              <p class="region-language"><span ng-bind="region.language"></span> <span class="region-abbreviation">(<span ng-bind="region.abbreviation"></span>)</span></p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script type="application/json" id="footer-localization">
+	{"navigation_items":[],"feedback_url":"https://github.com/WorkerFramework/worker-framework/issues","copyright":"© 2016 Hewlett Packard Enterprise","footer_logo":"assets/img/worker-framework-logo.png","footer_columns":[{"title":{"en-us":"Social"},"links":[{"title":{"en-us":"GitHub"},"url":{"en-us":"https://github.com/WorkerFramework/worker-framework"}},{"title":{"en-us":"Twitter"},"url":{"en-us":"https://twitter.com/workerframework"}},{"title":{"en-us":"Blog"},"url":{"en-us":"pages/en-us/blog/"}}]}]}
+</script>
+
+<script type="application/json" id="current-page-urls">
+  null
+</script>
+
+
+    <!-- Get the required JSON files and give them and ID so we may use them in our directive -->
+    <script type="application/json" id="supported-languages">
+      {"en-us":{"country":"United States","language":"English","continent":"North America"}}
+    </script>
+
+    <script type="application/json" id="documentation-localization">
+      {"Accept":{"en-us":"Accept"},"Access Token":{"en-us":"Access Token"},"API Key":{"en-us":"API Key"},"API Key Authentication":{"en-us":"API Key Authentication"},"Authenticate":{"en-us":"Authenticate"},"Authorization URL":{"en-us":"Authorization URL"},"Cancel":{"en-us":"Cancel"},"Close":{"en-us":"Close"},"Code":{"en-us":"Code"},"Choose A Region":{"en-us":"Choose A Region"},"Contact information":{"en-us":"Contact information"},"Content-Type":{"en-us":"Content-Type"},"Contribute":{"en-us":"Contribute"},"Description":{"en-us":"Description"},"Details":{"en-us":"Details"},"Examples":{"en-us":"Examples"},"false":{"en-us":"false"},"Filter by tags":{"en-us":"Filter by tags"},"Flow":{"en-us":"Flow"},"Header Preview":{"en-us":"Header Preview"},"Headers":{"en-us":"Headers"},"HTTP Basic Authentication":{"en-us":"HTTP Basic Authentication"},"In":{"en-us":"In"},"License":{"en-us":"License"},"Location":{"en-us":"Location"},"Models":{"en-us":"Models"},"Name":{"en-us":"Name"},"OAuth 2.0 Authentication":{"en-us":"OAuth 2.0 Authentication"},"Parameters":{"en-us":"Parameters"},"Password":{"en-us":"Password"},"Paths":{"en-us":"Paths"},"Please follow OAuth flow, copy access token from OAuth and paste it here.":{"en-us":"Please follow OAuth flow, copy access token from OAuth and paste it here."},"Request":{"en-us":"Request"},"Required":{"en-us":"Required"},"Responses":{"en-us":"Responses"},"Schema":{"en-us":"Schema"},"Scheme":{"en-us":"Scheme"},"Scopes":{"en-us":"Scopes"},"Security":{"en-us":"Security"},"Security Schema":{"en-us":"Security Schema"},"Send Request":{"en-us":"Send Request"},"Submit Feedback":{"en-us":"Submit Feedback"},"Summary":{"en-us":"Summary"},"Terms of service":{"en-us":"Terms of service"},"Terms of Service":{"en-us":"Terms of Service"},"Token URL":{"en-us":"Token URL"},"true":{"en-us":"true"},"Try this operation":{"en-us":"Try this operation"},"User Name":{"en-us":"User Name"},"Version":{"en-us":"Version"},"Warning: Deprecated":{"en-us":"Warning: Deprecated"}}
+    </script>
+
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/jquery.min.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/bootstrap.min.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/polyfills.js"></script>
+    <!-- Formatter Plugins -->
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/jsonformatter.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/schemaview.min.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/ref-parser.js"></script>
+
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/angular.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/angular-recursion.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/moment.min.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/jquery.dotdotdot.min.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/lodash.min.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/elements/hpe-elements-angular.min.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/md2html.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/yaml2js.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/json-editor.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/schema-form.min.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/marked.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/third-party/angular-marked.min.js"></script>
+
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/app.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/localization.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/swagger.js"></script>
+    <script src="https://ashley-hunter.github.io/worker-framework//caf-templates/assets/js/swagger_try.js"></script>
+
+    <script type="text/javascript">
+      var baseUrl = 'https://ashley-hunter.github.io/worker-framework/';
+    </script>
+
+  </body>
+
+</html>

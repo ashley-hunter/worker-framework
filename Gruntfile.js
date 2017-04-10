@@ -30,7 +30,7 @@ module.exports = function(grunt) {
         },
         buildcontrol: {
             options: {
-                dir: '.',
+                dir: './_site',
                 commit: true,
 				connectCommits: false,
                 push: true,
@@ -38,7 +38,7 @@ module.exports = function(grunt) {
             },
             pages: {
                 options: {
-                    remote: 'git@github.com:WorkerFramework/worker-framework.git',
+                    remote: 'https://github.com/ashley-hunter/worker-framework.git',
                     login: '',
                     token: '',
                     branch: 'gh-pages'
@@ -57,5 +57,5 @@ module.exports = function(grunt) {
     grunt.registerTask('serve', ['jekyll:serve']);
     grunt.registerTask('update', ['exec:bower_uninstall', 'exec:bower_clean', 'exec:bower_install']);
 
-    grunt.registerTask('publish', ['exec:bower_uninstall', 'exec:bower_clean', 'exec:bower_install', 'buildcontrol:pages']);
+    grunt.registerTask('publish', ['exec:bower_uninstall', 'exec:bower_clean', 'exec:bower_install', 'jekyll:build', 'buildcontrol:pages']);
 };

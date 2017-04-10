@@ -32,13 +32,13 @@ module.exports = function(grunt) {
             options: {
                 dir: './_site',
                 commit: true,
-				connectCommits: false,
+                connectCommits: false,
                 push: true,
                 message: 'Built %sourceName% from commit %sourceCommit% on branch %sourceBranch%'
             },
             pages: {
                 options: {
-                    remote: 'https://github.com/ashley-hunter/worker-framework.git',
+                    remote: 'git://github.com/ashley-hunter/worker-framework.git',
                     login: '',
                     token: '',
                     branch: 'gh-pages'

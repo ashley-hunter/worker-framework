@@ -103,7 +103,7 @@ Generate the new worker's shared module from the `worker-shared-archetype` with 
 
 The CLI will prompt you for groupId, version (default suggestion is 1.0-SNAPSHOT), package (default suggestion is the groupId, you should, however, adjust this to include the worker's purpose) and workerName properties required for the new shared project. The artifactId should be distinct for this module's purpose. See Figure 1.
 
-![Generate Example Worker Shared Module from CLI](images/CLIGenerateExampleShared.png)
+![Generate Example Worker Shared Module from CLI]({{ site.baseurl }}/images/CLIGenerateExampleShared.png)
 *Figure 1*
 
 If you are satisfied with the properties you have set, confirm them by typing 'Y'. Otherwise type 'N' or any other character to re-enter property values. After confirming your properties Maven will generate the new worker's shared module. Take note of these property names for the generation of the worker back-end module.

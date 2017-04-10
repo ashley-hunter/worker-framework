@@ -13,7 +13,7 @@ banner:
 ---
 
 
-![Generate Example Worker Shared Module from CLI]({{ site.baseurl }}images/CLIGenerateExampleShared.png)
+![Generate Example Worker Shared Module from CLI]({{ site.baseurl }}/pages/en-us/images/CLIGenerateExampleShared.png)
 *Figure 1*
 
 

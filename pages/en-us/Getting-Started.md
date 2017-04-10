@@ -17,8 +17,8 @@ banner:
 *Figure 1*
 
 
-![Generate Example Worker Backend Module from CLI]("/images/CLIGenerateExampleBackend.png")
+![Generate Example Worker Backend Module from CLI]({{ site.baseurl }}/images/CLIGenerateExampleBackend.png)
 *Figure 2*
 
-![Generate Example Worker Container Module from CLI]("images/CLIGenerateExampleContainer.png")
+![Generate Example Worker Container Module from CLI]({{ site.baseurl }}/images/CLIGenerateExampleContainer.png)
 *Figure 3*

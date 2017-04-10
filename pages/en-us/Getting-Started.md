@@ -13,12 +13,12 @@ banner:
 ---
 
 
-![Generate Example Worker Shared Module from CLI](images/CLIGenerateExampleShared.png)
+![Generate Example Worker Shared Module from CLI]('images/CLIGenerateExampleShared.png')
 *Figure 1*
 
 
-![Generate Example Worker Backend Module from CLI](/images/CLIGenerateExampleBackend.png)
+![Generate Example Worker Backend Module from CLI]('/images/CLIGenerateExampleBackend.png')
 *Figure 2*
 
-![Generate Example Worker Container Module from CLI](./images/CLIGenerateExampleContainer.png)
+![Generate Example Worker Container Module from CLI]('./images/CLIGenerateExampleContainer.png')
 *Figure 3*
